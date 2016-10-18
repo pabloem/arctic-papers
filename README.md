@@ -15,3 +15,33 @@ Some data from Scopus was 'corrupted', so there will be a few papers without pub
 Node ids capture what entity the node represents by their first letter: an author("a"), paper("p") or institution("i"). For instance, node "a7563051" would represent an author, node "i7563957" would represent an institution, and node "p67865" would represent a paper.
 
 Also, in `tripartite.graphml`, the nodes contain a `type` field which has a value of `'author'`,`'paper'`, or `'inst'`, for each entity.
+
+## Stats for tripartite graph and derivative graphs
+
+50189 papers. 78901 authors. 13150 institutions.
+
+The author-publication graph has 129090 nodes, 7916 connected components.
+Their sizes: [95637, 295, 102, 101, 96, 77, 64, 55, 47, 46], etc.
+
+50639 authors have ONE publication.
+11646 authors have TWO publications.
+5196 authors have THREE publications.
+11420 authors have MORE THAN THREE publications.
+
+8491 papers have ONE author.
+10458 papers have TWO authors.
+9397 papers have THREE authors.
+21843 papers have MORE THAN THREE authors.
+
+The author-institution graph has 92051 nodes, 7493 connected components.
+Their sizes: [73729, 67, 53, 47, 45, 38, 36, 35, 35, 29], etc.
+
+58527 authors have ONE institutions.
+12546 authors have TWO instututions.
+3370 authors have THREE institutions.
+4458 authors have MORE THAN THREE institutions.
+
+6850 institutions have ONE author.
+1942 institutions have TWO authors.
+1022 institutions have THREE authors.
+3336 institutions have MORE THAN THREE authors.

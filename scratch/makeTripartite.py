@@ -1,11 +1,11 @@
 import networkx as nx
 import json
 
-f = open('scratch/firstPapers.json')
+f = open('data/paperData.json')
 papers = json.load(f)
 f.close()
 
-f = open('scratch/journalData.json')
+f = open('data/journalData.json')
 journals = json.load(f)
 f.close()
 
@@ -28,30 +28,48 @@ for pp in papers:
 
 G = nx.Graph()
 
+def fill_in_publication_data(pp, pub):
+    for k,e in pub.items():
+        if e is None: continue
+        pp['pub_'+k] = e
 
 seenAuths = set()
 seenAffs = set()
 for i,pp in enumerate(papers):
     addPp = {}
+
+    # First we clean the paper info from None fields
     for k,e in pp.items():
         if e is None: continue
         addPp[k] = e
     pp = addPp
+
+    # The we check that the paper has an ISSN (we ignore books), and that the
+    # publication is one that we know.
     if 'pubissn' in pp and pp['pubissn'] in journalDic:
-        for k,e in journalDic[pp['pubissn']].items():
-            if e is None: continue
-            pp['pub_'+k] = e
+        fill_in_publication_data(pp, journalDic[pp['pubissn']])
     else:
         if 'pubissn' not in pp: continue
+        journalDic[pp['pubissn']] = {'issn':pp['pubissn']}
+        fill_in_publication_data(pp, journalDic[pp['pubissn']])
         print("Publication with issn {} unavailable or publication of paper \"{}\" unavailable."
               .format(str(pp.get('pubissn')),pp['title']))
 
     ppId = 'p{}'.format(i+1)
+
+    # Now we retrieve author information from a paper.
     authors = pp.get('authors')
     if 'authors' in pp: del pp['authors']
+    if authors is None or len(authors) == 0:
+        # If there are no authors in the paper, we ignore it
+        continue
 
+    # Now we retrieve affiliation information for a paper
     affiliations = pp.get('affiliations')
     if 'affiliations' in pp: del pp['affiliations']
+    if affiliations is None or len(affiliations) == 0:
+        # If there are no affiliations in the paper, we ignore it
+        continue
     pp['type'] = 'paper'
     G.add_node(ppId,pp)
 
