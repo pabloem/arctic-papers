@@ -16,7 +16,7 @@ for pp in papers:
     if 'affiliations' not in pp: continue
     for j, aff in enumerate(pp['affiliations']):
         if 'id' not in aff or aff['id'] is None or aff['id'] == '': continue
-        if not isinstance(aff,str) and len(aff['names']) > 0: 
+        if not isinstance(aff,str) and len(aff['names']) > 0:
             aff['name'] = aff['names'][0]
             aff['names'] = ', '.join([nm for nm in aff['names'] if nm is not None])
         newAff = {}
@@ -70,7 +70,7 @@ for i,pp in enumerate(papers):
     if affiliations is None or len(affiliations) == 0:
         # If there are no affiliations in the paper, we ignore it
         continue
-    pp['type'] = 'paper'
+    pp['category'] = 'paper'
     G.add_node(ppId,pp)
 
     if affiliations is not None:
@@ -81,7 +81,7 @@ for i,pp in enumerate(papers):
             aff = institutionDic[aff['id']]
             if affId in seenAffs: continue
             seenAffs.add(affId)
-            aff['type'] = 'inst'
+            aff['category'] = 'inst'
             G.add_node(affId,aff)
             G.add_edge(ppId,affId) # These might not be useful
 
@@ -99,7 +99,7 @@ for i,pp in enumerate(papers):
             auth['affiliations'] = ', '.join(auth['affiliations'])
         if athId not in seenAuths:
             seenAuths.add(athId)
-            auth['type'] = 'author'
+            auth['category'] = 'author'
             G.add_node(athId,auth)
         G.add_edge(ppId,athId)
         for aff in authAffs:
