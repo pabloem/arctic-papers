@@ -9,6 +9,12 @@ The code to ceate the datasets is in `scratch/`. Their functions are the followi
 * `scratch/makeAuthorPaperGraph.py` - It takes in data from the two previous scripts (check first few lines), and outputs a bipartite graph of authors and papers
 * `scratch/makeTripartite.py` - It takes in data from the two previous scripts (check first few lines), and outputs a tripartite graph that includes papers, authors, and institutions.
 
+### Notes on what the data files are
+* `data/acia.csv` is a list of author ids that we want to mark in the graph.
+* `data/paperData.json` is the list of paper information as scraped from the SCOPUS database.
+* `data/scopusRefined.json` is a refined version of `data/paperData.json`. The paper data is spread into several
+dictionaries, due to how openrefine works.
+
 ### Graph conventions
 Some data from Scopus was 'corrupted', so there will be a few papers without publication, author or affiliation information.
 

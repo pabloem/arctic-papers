@@ -1,30 +1,45 @@
 import networkx as nx
 import json
+import csv
+import itertools
 
-f = open('data/paperData.json')
-papers = json.load(f)
-f.close()
+from utilities import (PaperGenerator,
+                       OpenRefinePaperGenerator,
+                       NamesIdDictionary)
 
-f = open('data/journalData.json')
-journals = json.load(f)
-f.close()
 
-journalDic = {j['issn']:j for j in journals}
-institutionDic = {}
+def load_journals(file_name='data/journalData.json'):
+  with open(file_name) as f:
+    journals = json.load(f)
+  journal_dictionary = {j['issn']:j for j in journals}
+  return journal_dictionary
 
+def load_important_authors(file_name='data/acia.csv'):
+  with open(file_name) as f:
+    ids = [a[0] for a in list(csv.reader(f))]
+  return ids
+
+acia_auths = set(load_important_authors())
+
+
+journalDic = load_journals()
+#papers = PaperGenerator()
+papers = OpenRefinePaperGenerator()
+
+def different_institutions(x, y):
+  return (x['names'] != y['names'] and
+          all([x[k] != y[k] for k in ['country', 'city']
+              if k in y and k in x and None not in [x[k], y[k]]] or [False]))
+
+institution_dictionary = NamesIdDictionary(
+                    differentiator=different_institutions)
 for pp in papers:
-    if 'affiliations' not in pp: continue
-    for j, aff in enumerate(pp['affiliations']):
-        if 'id' not in aff or aff['id'] is None or aff['id'] == '': continue
-        if not isinstance(aff,str) and len(aff['names']) > 0:
-            aff['name'] = aff['names'][0]
-            aff['names'] = ', '.join([nm for nm in aff['names'] if nm is not None])
-        newAff = {}
-        for k,e in aff.items():
-            if e is None: continue
-            newAff[k] = e
-        aff = newAff
-        institutionDic[aff['id']] = aff
+  if 'affiliations' not in pp: continue
+  for j, aff in enumerate(pp['affiliations']):
+    try:
+      institution_dictionary.add(aff)
+    except KeyError:
+      continue
 
 G = nx.Graph()
 
@@ -35,7 +50,7 @@ def fill_in_publication_data(pp, pub):
 
 seenAuths = set()
 seenAffs = set()
-for i,pp in enumerate(papers):
+for i, pp in enumerate(papers):
     addPp = {}
 
     # First we clean the paper info from None fields
@@ -75,10 +90,17 @@ for i,pp in enumerate(papers):
 
     if affiliations is not None:
         for j, aff in enumerate(affiliations):
-            if 'id' not in aff or aff['id'] is None or aff['id'] == '': continue
-            if aff['id'] not in institutionDic: continue
-            affId = 'i'+aff['id']
-            aff = institutionDic[aff['id']]
+            if not aff.get('id'): continue
+            aff = institution_dictionary.get(aff['id'])
+            if not aff: continue
+            try:
+                ids = sorted(list(
+                        institution_dictionary.get_ids_from_id(aff['id'])))
+            except TypeError:
+                print(aff)
+            if len(ids) > 1:
+                print('Long ids. Good. {}'.format(str(ids)))
+            affId = 'i'+ids[0]
             if affId in seenAffs: continue
             seenAffs.add(affId)
             aff['category'] = 'inst'
@@ -87,6 +109,9 @@ for i,pp in enumerate(papers):
 
     if authors is None: continue
     for j, auth in enumerate(authors):
+        if 'id' not in auth:
+            continue
+        auth['acia'] = auth['id'] in acia_auths
         athId = 'a{}'.format(auth['id'])
         newAuth = {}
         for k,e in auth.items():
