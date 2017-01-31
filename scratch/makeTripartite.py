@@ -1,3 +1,4 @@
+import ipdb
 import networkx as nx
 import json
 import csv
@@ -50,6 +51,18 @@ def fill_in_publication_data(pp, pub):
 
 seenAuths = set()
 seenAffs = set()
+def add_node(G, id, node):
+  if id == 'i0':
+    print("Inserting i0!")
+    ipdb.set_trace()
+  G.add_node(id, node)
+
+def add_edge(G, id1, id2):
+  if id1[0] == id2[0]:
+    print("Intra-category edge!")
+    ipdb.set_trace()
+  G.add_edge(id1, id2)
+
 for i, pp in enumerate(papers):
     addPp = {}
 
@@ -86,26 +99,25 @@ for i, pp in enumerate(papers):
         # If there are no affiliations in the paper, we ignore it
         continue
     pp['category'] = 'paper'
-    G.add_node(ppId,pp)
+    add_node(G, ppId,pp)
 
     if affiliations is not None:
-        for j, aff in enumerate(affiliations):
-            if not aff.get('id'): continue
-            aff = institution_dictionary.get(aff['id'])
-            if not aff: continue
-            try:
-                ids = sorted(list(
-                        institution_dictionary.get_ids_from_id(aff['id'])))
-            except TypeError:
-                print(aff)
-            if len(ids) > 1:
-                print('Long ids. Good. {}'.format(str(ids)))
-            affId = 'i'+ids[0]
-            if affId in seenAffs: continue
-            seenAffs.add(affId)
-            aff['category'] = 'inst'
-            G.add_node(affId,aff)
-            G.add_edge(ppId,affId) # These might not be useful
+      for j, aff in enumerate(affiliations):
+        if not aff.get('id'): continue
+        aff = institution_dictionary.get(aff['id'])
+        if not aff: continue
+        try:
+          aff_ids = sorted(list(
+              institution_dictionary.get_ids_from_id(aff['id'])))
+        except TypeError:
+          pass
+        if len(aff_ids) > 1:
+          print('Long ids. Good. {}'.format(str(aff_ids)))
+        affId = 'i'+aff_ids[0]
+        seenAffs.add(affId)
+        aff['category'] = 'inst'
+        add_node(G, affId, aff)
+        add_edge(G, ppId, affId) # These might not be useful
 
     if authors is None: continue
     for j, auth in enumerate(authors):
@@ -118,17 +130,18 @@ for i, pp in enumerate(papers):
             if e is None: continue
             newAuth[k] = e
         auth = newAuth
-        authAffs = []
-        if 'affiliations' in auth:
-            authAffs = auth['affiliations']
-            auth['affiliations'] = ', '.join(auth['affiliations'])
+        #authAffs = []
+        #if 'affiliations' in auth:
+        #    authAffs = auth['affiliations']
+        #    auth['affiliations'] = ', '.join(auth['affiliations'])
         if athId not in seenAuths:
             seenAuths.add(athId)
             auth['category'] = 'author'
-            G.add_node(athId,auth)
-        G.add_edge(ppId,athId)
-        for aff in authAffs:
-            affId = 'i'+aff
-            G.add_edge(athId,affId)
+            add_node(G, athId,auth)
+        add_edge(G, ppId,athId)
+        #for aff in authAffs:
+        if 'affiliations' in auth:
+          affId = 'i'+auth['affiliations']
+          add_edge(G, athId, affId)
 
 nx.write_graphml(G,'tripartite.graphml')
