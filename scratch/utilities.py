@@ -19,7 +19,11 @@ class NamesIdDictionary(object):
 
     self._different = differentiator
 
-    self._name_fld = name_field
+    if isinstance(name_field, str):
+      self._name_fld = lambda x: x.get(name_field)
+    else: # name_field MUST BE A LAMBDA
+      self._name_fld = name_field
+
     self._id_fld = id_field
 
   def get_ids_from_id(self, id):
@@ -33,8 +37,7 @@ class NamesIdDictionary(object):
 
   def add(self, item):
     id = item.get(self._id_fld)
-    name = item.get(self._name_fld)
-
+    name = self._name_fld(item)
     if not id:
         raise KeyError('ID can not be None.')
 

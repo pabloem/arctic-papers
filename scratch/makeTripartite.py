@@ -33,7 +33,9 @@ def different_institutions(x, y):
               if k in y and k in x and None not in [x[k], y[k]]] or [False]))
 
 institution_dictionary = NamesIdDictionary(
-                    differentiator=different_institutions)
+    name_field=lambda x: '{} {}'.format(x.get('names', ''), x.get('country', '')),
+    differentiator=different_institutions)
+
 for pp in papers:
   if 'affiliations' not in pp: continue
   for j, aff in enumerate(pp['affiliations']):
@@ -112,7 +114,7 @@ for i, pp in enumerate(papers):
         except TypeError:
           pass
         if len(aff_ids) > 1:
-          print('Long ids. Good. {}'.format(str(aff_ids)))
+          print('Long ids. Good. {} ids'.format(str(len(aff_ids))))
         affId = 'i'+aff_ids[0]
         seenAffs.add(affId)
         aff['category'] = 'inst'
